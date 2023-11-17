@@ -3,22 +3,12 @@ import sqlite3
 
 app = Flask(__name__)
 
-
-DATABASE = "database.db"
+# 1. Configuration settings
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+DATABASE = "database.db"
 
 
-@app.before_request
-def before_request():
-    g.db = sqlite3.connect(DATABASE)
-
-
-@app.teardown_request
-def teardown_request(exception):
-    if hasattr(g, "db"):
-        g.db.close()
-
-
+# 2. Database initialization
 def create_table():
     with app.app_context():
         db = get_db()
@@ -41,9 +31,26 @@ def get_db():
     return g.db
 
 
+@app.before_first_request
+def before_first_request():
+    create_table()
+
+
+# 3. Request handling
+@app.before_request
+def before_request():
+    g.db = sqlite3.connect(DATABASE)
+
+
+@app.teardown_request
+def teardown_request(exception):
+    if hasattr(g, "db"):
+        g.db.close()
+
+
+# 4. Route definitions
 @app.route("/")
 def index():
-    create_table()
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users")
@@ -57,7 +64,7 @@ def add_user():
     email = request.form.get("email")
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO users (username, email) VALUES(?, ?);", (name, email))
+    cursor.execute("INSERT INTO users (username, email) VALUES (?, ?);", (name, email))
     db.commit()
     return redirect("/")
 
