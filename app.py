@@ -9,7 +9,6 @@ DATABASE = "database.db"
 
 
 # 2. Database initialization
-# @app.before_first_request
 def create_table():
     with app.app_context():
         db = get_db()
@@ -32,11 +31,6 @@ def get_db():
     return g.db
 
 
-# @app.before_first_request
-# def before_first_request():
-#     create_table()
-
-
 # 3. Request handling
 @app.before_request
 def before_request():
@@ -52,8 +46,9 @@ def teardown_request(exception):
 # 4. Route definitions
 @app.route("/")
 def index():
-    create_table()
     db = get_db()
+    with app.app_context():
+        create_table()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users")
     users = cursor.fetchall()
@@ -62,7 +57,7 @@ def index():
 
 @app.post("/add")
 def add_user():
-    name = request.form.get("name")
+    name = request.form.get("username")
     email = request.form.get("email")
     db = get_db()
     cursor = db.cursor()
@@ -74,7 +69,6 @@ def add_user():
 @app.post('/remove')
 def remove_user():
     name = request.form.get('username')
-    print(name)
     db = get_db()
     cursor = db.cursor()
     # delete the row
