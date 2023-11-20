@@ -10,19 +10,18 @@ DATABASE = "database.db"
 
 # 2. Database initialization
 def create_table():
-    with app.app_context():
-        db = get_db()
-        cursor = db.cursor()
-        cursor.execute(
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT NOT NULL,
-                email TEXT NOT NULL
-            )
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
         """
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            email TEXT NOT NULL
         )
-        db.commit()
+    """
+    )
+    db.commit()
 
 
 def get_db():
@@ -31,10 +30,8 @@ def get_db():
     return g.db
 
 
-@app.before_first_request
-def before_first_request():
+with app.app_context():
     create_table()
-
 
 # 3. Request handling
 @app.before_request
@@ -50,7 +47,7 @@ def teardown_request(exception):
 
 # 4. Route definitions
 @app.route("/")
-def index():
+def index(): 
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users")
